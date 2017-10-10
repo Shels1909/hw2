@@ -42,7 +42,6 @@ int main( int argc, char** argv ) {
 
                     parse( shell_cmd, &command );
 
-                    printf("command.argc: %d\ncommand.path: %s\n", command.argc, command.path);
                     if ( ( command.argc >= 1 ) && equals( command.path, "exit" )  ) {
                             done = TRUE;
 
