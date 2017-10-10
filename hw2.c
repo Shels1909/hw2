@@ -34,47 +34,41 @@ int main( int argc, char** argv ) {
 	
 	for ( i=0; i<50; i++ ) command.argv[i] = malloc(sizeof(char)*100);
 
-	while ( !done ) {
 
-		printf("[%s](%d)$ ", getenv("USER"), cmd_cnt++ );
-		gets( shell_cmd );
+            while ( !done ) {
 
-		parse( shell_cmd, &command );
-                
-                for(int j = 0; j <= command.argc; j ++){                                                                                                                                                                
-                   printf("the value of argv[%d] is %s\n ", j, command.argv[j]);                                                                                                                                       
-               }        
+                printf("[%s](%d)$ ", getenv("USER"), cmd_cnt++ );
+                gets( shell_cmd );
 
-		if ( ( command.argc > 1 ) && equals( command.path, "exit" )  ) {
+                    parse( shell_cmd, &command );
 
-			done = TRUE;
+                    printf("command.argc: %d\ncommand.path: %s\n", command.argc, command.path);
+                    if ( ( command.argc >= 1 ) && equals( command.path, "exit" )  ) {
+                            done = TRUE;
 
-		} else if ( command.argc == ERROR ) { 
+                    } else if ( command.argc == ERROR ) { 
 
-			fprintf( stderr, "%s: command not found!\n", command.path );
+                            fprintf( stderr, "%s: command not found!\n", command.path );
 
-		} else if ( command.argc > 0 ) {
+                    } else if ( command.argc > 0 ) {
 
-			if ( is_builtin( &command ) ) {
+                            if ( is_builtin( &command ) ) {
 
-				if ( do_builtin( &command ) != SUCCESSFUL ) {
+                                    if ( do_builtin( &command ) != SUCCESSFUL ) {
 
-					fprintf( stderr, "%s command failed: requested folder [%s] does not exist!\n", 
-					command.path, command.argv[0] );
+                                            fprintf( stderr, "%s command failed: requested folder [%s] does not exist!\n", 
+                                            command.path, command.argv[0] );
 
-				}
+                                    }
 
-			} else if ( execute( &command ) != SUCCESSFUL ) {
+                            } else if ( execute( &command ) != SUCCESSFUL ) {
 
-				fprintf( stderr, "%s command failed!\n", command.path );
+                                    fprintf( stderr, "%s command failed!\n", command.path );
 
-			} 
+                            } 
 
-		}
-
+                    }
 	}
-
-
 	cleanup( &command );
 
 	return 0;

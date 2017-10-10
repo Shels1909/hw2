@@ -23,16 +23,15 @@ void parse( char* line, command_t* p_cmd ) {
 
         int argc;
         int i;
-        char* path;
-
+        char* command;
         char p1[strlen(line)]; 
         strcpy(p1, line);
         
-        // count the the number of arguments in the command
+        // the command is the first word of line
         char* token = strtok(line, " "); 
-        //path = (char*) malloc(strlen(token));
-        path = token;
+        command = token;
 
+        // count the the number of arguments in the command
         argc = 0;
         while(token != NULL){
             token = strtok(NULL, " ");
@@ -41,7 +40,7 @@ void parse( char* line, command_t* p_cmd ) {
         
         // initialize argv with the first string in the array as the path
         char *argv[argc + 1]; 
-        argv[0] = path;
+        argv[0] = command;
 
         // go through the rest of line and put each argument into argv
         char* tok = strtok(p1, " ");
@@ -51,40 +50,76 @@ void parse( char* line, command_t* p_cmd ) {
             argv[i] = tok;
             i = i +1;
         }
-
-        printf("The value of the path is: %s\n", path);
-        printf("The value of the argc is: %d\n", argc);
-        for(int j = 0; j <= argc; j ++){
-            printf("the value of argv[%d] is %s\n ", j, argv[j]);
-        }       
-
-        p_cmd->path = path;
-        p_cmd->argc = argc;
-        for(int j = 0; j <= argc; j ++){
-            (*p_cmd).argv[j] = argv[j];
-        }       
-
         
-} // end parse function
+        for(int j = 0; j < argc; j ++){
+            strcpy(p_cmd->argv[j], argv[j]);
+        }       
 
+        // set the values for the command struct
+        strcpy(p_cmd->path,command);
+        p_cmd->argc = argc;
+        if(find_fullpath(p_cmd->path, p_cmd) != 1){
+           if(!is_builtin(p_cmd))
+                p_cmd->argc = -1;
+        }
+
+} // end parse function
 
 int execute( command_t* p_cmd ) {
 
-	// ----------------------------------------
-	// TODO: you fully implement this function
-        return 0;
+    
+    // ----------------------------------------
+    // TODO: you fully implement this function
+        
 
+    pid_t pid;
+    if((pid = fork()) == 0){
+        p_cmd->argv[p_cmd->argc] = NULL;
+        execv(p_cmd->path, p_cmd->argv);
+        perror("Exited terminal with an error condition");
+        exit(1);
+    }       
+    wait(0);
+
+    return 0;
 } // end execute function
 
 
 int find_fullpath( char* command_name, command_t* p_cmd ) {
 
+    char* path_env = getenv( "PATH" );
+    char path_copy[strlen(path_env)];
+    strcpy(path_copy, path_env);
+    char* p1 = path_copy;
+    char* p2 = path_copy;
+    char path[120];
+    struct stat buffer;  
+    int len = strlen(p1);
+    int found = 0;
+    int exists;
+    for(int i = 0; i < len && !found; i++){
+        p1++;
+        if(*(p1) == ':'){
+            *(p1) = '\0';
+            strcpy(path, p2);
+            strcat(path, "/");
+            strcat(path, command_name); 
+            exists = stat(path, &buffer);
 
-	char* path = getenv( "PATH" );
-	
-	// ----------------------------------------
-	// TODO: you fully implement this function
-        return 0;
+            if(exists == 0 && (S_IFREG * buffer.st_mode)){
+                strcpy(p_cmd->path, path);
+                found = 1;
+            }
+            else{
+                p1 ++;
+                p2 = p1;
+            }
+            
+        }        
+        
+    }
+
+    return found;
 
 } // end find_fullpath function
 
@@ -98,7 +133,6 @@ int is_builtin( command_t* p_cmd ) {
 		if ( equals( p_cmd->path, valid_builtin_commands[cnt] ) ) {
 
 			return TRUE;
-
 		}
 
 		cnt++;
@@ -120,7 +154,6 @@ int do_builtin( command_t* p_cmd ) {
 	int status = ERROR;
 
 
-        printf("folder: %s\n", p_cmd->argv[1]);
 	if ( p_cmd->argc == 1 ) {
 
 		// -----------------------
@@ -186,7 +219,6 @@ int equals( char* str1, const char* str2 ) {
 	}
 
 	if ( len[0] != len[1] ) {
-
 		return FALSE;
 
 	} else {
