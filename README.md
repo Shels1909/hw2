@@ -1,3 +1,5 @@
 # shell_340
 
-Shell implemented in C
+Shell written in C
+
+shell.c contains implementation
